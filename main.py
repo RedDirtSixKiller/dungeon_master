@@ -30,6 +30,3 @@ character2.equip_weapon(weapon2)
 # Call the attack() method of the character
 battle(character1, character2)
 
-
-
-#push test
