@@ -4,3 +4,12 @@ equipment - separate weapons/armor/other?
 spells or some other magic class
 fighting - attack, defense, initiative
 get narrative - connect to openai for the story
+
+use ChatGPT to generate a D&D adventure:
+1. write a simple module/dungeon
+2. put in a random dice generator
+3. have chat gpt give a decription of what happens when you roll the dice
+4. generate an image that shows the action, maybe even a little animation
+5. create a character sheet in the background but the player just prompts with descritions of their actions
+6. chat then applies the player action to the character cheet
+7. then reinterpret the numbers to narrative
