@@ -61,6 +61,7 @@ class Character:
     def take_damage(self, damage):
         self.health -= damage
         if self.health <= 0:
+            self.health = 0
             return f"{self.name} has been defeated!"
         else:
             return f"{self.name} takes {damage} damage and has {self.health} health remaining."

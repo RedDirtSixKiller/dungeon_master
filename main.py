@@ -1,7 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 from battle import battle
 from character import AbilityScores, Character
@@ -28,5 +24,5 @@ character2 = Character(name='Daisy', race='Elf', class_type='Rogue', level=10, h
 character1.equip_weapon(weapon1)
 character2.equip_weapon(weapon2)
 # Call the attack() method of the character
-battle(character1, character2)
+battle(character1, character2, narrate = False)
 
