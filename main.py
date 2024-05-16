@@ -16,9 +16,9 @@ weapon2 = Weapon(name='Bow', weight=6, speed=4, min_damage=1, max_damage=6)
 
 # Create a DnDCharacter object with the above AbilityScores
 char1 = Character(name='Sturm', race='Human', char_class='Warrior', level=10, health=25,
-                  ability_scores=ability_scores1)
+                  ability_scores=ability_scores1, weapon=weapon1)
 char2 = Character(name='Daisy', race='Drow Elf', char_class='Rogue', level=10, health=25,
-                  ability_scores=ability_scores2)
+                  ability_scores=ability_scores2, weapon=weapon2)
 
 
 
