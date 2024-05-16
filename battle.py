@@ -1,42 +1,31 @@
-from character import Character
+from actions import Actions
+import random
 
+class Battle:
+    def __init__(self, char1, char2):
+        self.char1 = char1
+        self.char2 = char2
 
-from character import Character
-from get_story import get_completion
+    def determine_initiative(self):
+        roll1 = random.randint(1, 20) + self.char1.ability_scores.dexterity
+        roll2 = random.randint(1, 20) + self.char2.ability_scores.dexterity
 
-def battle(attacker: Character, defender: Character, narrate: bool = False):
-    while attacker.health > 0 and defender.health > 0:
-        # Get attacker's damage roll
-        if attacker.weapon is None:
-            damage_roll = 1  # Default damage roll if no weapon is equipped
+        if roll1 > roll2:
+            return self.char1, self.char2
+        elif roll1 < roll2:
+            return self.char2, self.char1
+        else:  # If both characters have the same roll, choose randomly
+            return random.choice([(self.char1, self.char2), (self.char2, self.char1)])
+
+    def start(self):
+        while self.char1.health > 0 and self.char2.health > 0:
+            attacker, defender = self.determine_initiative()
+            Actions.attack(attacker, defender)
+            if defender.health > 0:
+                Actions.attack(defender, attacker)
+
+        # Declare the winner
+        if self.char1.health > 0:
+            print(f"{self.char1.name} is the winner!")
         else:
-            damage_roll = attacker.weapon.damage_roll()
-
-        # Get defender's armor class
-        if defender.armor is None:
-            armor_class = -10  # Default armor class if no armor is equipped
-        else:
-            armor_class = defender.armor.protection
-
-        # Calculate damage
-        damage = max(0, damage_roll - armor_class)
-
-        # Apply damage to defender
-        defender.take_damage(damage)
-
-        # Generate battle narrative
-        if narrate:
-            prompt = f"""
-            Your task is to act as a dungeon master describing a combat action in dungeons and dragons.\
-            Write a narrative where the characters' information is delimited by <char></char>\
-            and the action is delimited by <act></act>
-
-            Action: <char>{attacker.name}</char> <act>attacks with {attacker.weapon.name}</act> <char>{defender.name}</char>
-            """
-            narrative = get_completion(prompt)
-            print(narrative)
-
-        # Print battle outcome
-        print(
-            f"{attacker.name} attacks {defender.name} with {attacker.weapon.name} "
-            f"for {damage} damage. {defender.name} has {defender.health} health remaining.")
+            print(f"{self.char2.name} is the winner!")
