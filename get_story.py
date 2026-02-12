@@ -1,11 +1,18 @@
 from openai import OpenAI
-import config
-client = OpenAI(api_key=config.openai_key)
+
+from settings import get_openai_api_key, load_dotenv
+
+load_dotenv()
 
 
 
 # the main workhorse
 def get_completion(prompt, model='gpt-3.5-turbo'):
+    api_key = get_openai_api_key()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set. Add it to your .env file.")
+
+    client = OpenAI(api_key=api_key)
     messages = [{"role": "user", "content": prompt}]
     response = client.chat.completions.create(model=model,
                                               messages=messages,

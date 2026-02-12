@@ -1,0 +1,26 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+
+def load_dotenv(dotenv_path: str = ".env") -> None:
+    """Load simple KEY=VALUE pairs from a local .env file into process env."""
+    path = Path(dotenv_path)
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def get_openai_api_key() -> str | None:
+    return os.getenv("OPENAI_API_KEY")

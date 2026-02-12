@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
 from typing import Optional
 
 from game_engine import CombatEvent
+from settings import get_openai_api_key, load_dotenv
 
 import importlib.util
 
@@ -18,7 +18,8 @@ class Narrator:
     def __init__(self, model: str = "gpt-4o-mini"):
         self.model = model
         self._client = None
-        api_key = os.getenv("OPENAI_API_KEY")
+        load_dotenv()
+        api_key = get_openai_api_key()
         if OpenAI and api_key:
             self._client = OpenAI(api_key=api_key)
 

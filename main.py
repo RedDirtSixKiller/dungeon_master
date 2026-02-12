@@ -1,7 +1,7 @@
 from character import AbilityScores, Character
 from equipment import Armor, Weapon
-from game_engine import GameEngine
 from narrator import Narrator
+from session import AdventureSession
 
 
 ability_scores1 = AbilityScores(strength=18, dexterity=14, wisdom=12, constitution=15, intelligence=13, charisma=16)
@@ -33,8 +33,11 @@ char2 = Character(
     armor=armor2,
 )
 
-engine = GameEngine([char1, char2])
-narrator = Narrator()
+session = AdventureSession(
+    [char1, char2],
+    narrator=Narrator(),
+    scene_overview="A ruined chapel in the underdark, lit by bioluminescent moss and torch smoke.",
+)
 
 scene_actions = [
     ("Sturm", "Daisy", "I charge and slash with my sword"),
@@ -43,19 +46,18 @@ scene_actions = [
 ]
 
 for actor, target, text in scene_actions:
-    if engine.is_defeated(actor) or engine.is_defeated(target):
+    if session.engine.is_defeated(actor) or session.engine.is_defeated(target):
         break
-    event = engine.perform_action(actor, target, text)
+    result = session.process_turn(actor, target, text)
 
     print(f"\nAction: {actor} -> {target} | '{text}'")
-    for roll in event.rolls:
-        print(f"  Roll {roll.formula}: {roll.rolls} + {roll.modifier} = {roll.total}")
-    print(f"  Outcome: {event.action}, hit={event.hit}, damage={event.damage}")
-    actor_hp = engine.characters[actor.lower()].health
-    target_hp = engine.characters[target.lower()].health
-    print(f"  HP: {actor}={actor_hp}, {target}={target_hp}")
-    print(f"  Narrative: {narrator.narrate(event, text)}")
+    print("  Mechanics:")
+    for line in result.mechanics_summary.splitlines():
+        print(f"    {line}")
+    print(f"  State delta: {result.state_delta}")
+    print(f"  Narrative: {result.narrative}")
+    print(f"  Image prompt: {result.image_prompt}")
 
 print("\nFinal state:")
-for c in (char1, char2):
-    print(f"- {c.name}: {c.health} HP")
+for actor in session.scene_state()["actors"]:
+    print(f"- {actor['name']}: {actor['hp']} HP")
