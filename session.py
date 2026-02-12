@@ -17,6 +17,7 @@ class TurnResult:
     scene_state: Dict[str, object]
     narrative: str
     image_prompt: str
+    ai_state_notes: List[str]
 
 
 class AdventureSession:
@@ -48,9 +49,12 @@ class AdventureSession:
         self.turn_number += 1
         mechanics = self._mechanics_summary(event)
         state_delta = self._state_delta(event, actor_hp_before, target_hp_before)
+        pre_narration_scene_state = self.scene_state()
+        directives = self._narrator_directives(event, intent, mechanics, pre_narration_scene_state)
+        self._apply_scene_overview_update(directives.get("scene_overview_update", ""))
         scene_state = self.scene_state()
-        narrative = self.narrator.narrate(event, intent)
-        image_prompt = self._image_prompt(event, intent, narrative)
+        narrative = directives["narrative"]
+        image_prompt = self._image_prompt(event, intent, narrative, directives.get("image_prompt_addendum", ""))
 
         result = TurnResult(
             event=event,
@@ -59,6 +63,7 @@ class AdventureSession:
             scene_state=scene_state,
             narrative=narrative,
             image_prompt=image_prompt,
+            ai_state_notes=directives.get("state_notes", []),
         )
         self.history.append(result)
         return result
@@ -125,8 +130,8 @@ class AdventureSession:
         lines.append(f"hit={event.hit} | damage={event.damage} | actor_hp={event.actor_hp} | target_hp={event.target_hp}")
         return "\n".join(lines)
 
-    def _image_prompt(self, event: CombatEvent, intent: str, narrative: str) -> str:
-        return (
+    def _image_prompt(self, event: CombatEvent, intent: str, narrative: str, addendum: str) -> str:
+        base = (
             "Illustration prompt for a fantasy RPG scene. "
             f"Scene: {self.scene_overview} "
             f"Turn {self.turn_number}: {event.actor} attempts '{intent}' against {event.target}. "
@@ -134,3 +139,39 @@ class AdventureSession:
             f"{event.actor} hp={event.actor_hp}, {event.target} hp={event.target_hp}. "
             f"Narrative tone: {narrative}"
         )
+        if addendum:
+            return f"{base} Visual details: {addendum}"
+        return base
+
+    def _narrator_directives(
+        self,
+        event: CombatEvent,
+        intent: str,
+        mechanics_summary: str,
+        scene_state: Dict[str, object],
+    ) -> Dict[str, object]:
+        narrate_structured = getattr(self.narrator, "narrate_structured", None)
+        if callable(narrate_structured):
+            result = narrate_structured(
+                event=event,
+                action_text=intent,
+                mechanics_summary=mechanics_summary,
+                scene_state=scene_state,
+            )
+            if isinstance(result, dict) and "narrative" in result:
+                return result
+
+        return {
+            "narrative": self.narrator.narrate(event, intent),
+            "scene_overview_update": "",
+            "state_notes": [],
+            "image_prompt_addendum": "",
+        }
+
+    def _apply_scene_overview_update(self, update: str) -> None:
+        if not isinstance(update, str):
+            return
+        update = update.strip()
+        if not update:
+            return
+        self.scene_overview = update

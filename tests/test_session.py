@@ -10,6 +10,19 @@ class DummyNarrator:
         return f"{event.actor}::{event.action}::{action_text}"
 
 
+class StructuredDummyNarrator:
+    def narrate(self, event, action_text):
+        return "fallback"
+
+    def narrate_structured(self, event, action_text, mechanics_summary, scene_state):
+        return {
+            "narrative": f"Structured:{event.actor}:{event.action}",
+            "scene_overview_update": "The chapel fills with drifting ash.",
+            "state_notes": ["A pillar collapses near the altar."],
+            "image_prompt_addendum": "Ash clouds and cracked stone floor.",
+        }
+
+
 def _characters():
     c1 = Character(
         name="A",
@@ -57,3 +70,15 @@ def test_healing_is_capped_at_starting_max_hp():
     assert result.event.action == "heal"
     assert result.event.damage == 0
     assert result.state_delta["healing"] == 0
+
+
+def test_structured_narrator_updates_scene_and_state_notes():
+    c1, c2 = _characters()
+    session = AdventureSession([c1, c2], narrator=StructuredDummyNarrator(), rng=random.Random(1))
+
+    result = session.process_turn("A", "B", "I attack with my sword")
+
+    assert result.narrative == "Structured:A:attack"
+    assert result.scene_state["scene_overview"] == "The chapel fills with drifting ash."
+    assert result.ai_state_notes == ["A pillar collapses near the altar."]
+    assert "Ash clouds and cracked stone floor." in result.image_prompt
