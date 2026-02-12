@@ -24,3 +24,8 @@ def load_dotenv(dotenv_path: str = ".env") -> None:
 
 def get_openai_api_key() -> str | None:
     return os.getenv("OPENAI_API_KEY")
+
+
+def get_openai_model(default: str = "gpt-4o-mini") -> str:
+    model = os.getenv("OPENAI_MODEL", "").strip()
+    return model or default

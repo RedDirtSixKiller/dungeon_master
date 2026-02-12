@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Optional
 
 from game_engine import CombatEvent
-from settings import get_openai_api_key, load_dotenv
+from settings import get_openai_api_key, get_openai_model, load_dotenv
 
 import importlib.util
 
@@ -13,11 +14,14 @@ if importlib.util.find_spec("openai") is not None:
     from openai import OpenAI
 
 
+logger = logging.getLogger(__name__)
+
+
 class Narrator:
     """Narrates combat outcomes with optional OpenAI enhancement."""
 
-    def __init__(self, model: str = "gpt-4o-mini"):
-        self.model = model
+    def __init__(self, model: Optional[str] = None):
+        self.model = model or get_openai_model()
         self._client = None
         load_dotenv()
         api_key = get_openai_api_key()
@@ -66,7 +70,13 @@ class Narrator:
             )
             parsed = json.loads(response.output_text.strip())
             return self._validate_structured(parsed, fallback)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "OpenAI narration failed; using fallback narrative. model=%s error=%s: %s",
+                self.model,
+                type(exc).__name__,
+                exc,
+            )
             return fallback
 
     @staticmethod
